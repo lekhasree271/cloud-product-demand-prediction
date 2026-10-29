@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloud-Based Product Demand Prediction System</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN for interactive demand visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-box">
+        <span class="logo-icon">📊</span>
+        <div class="logo-text">
+          <span class="brand-title">DemandForecast AI</span>
+          <span class="brand-sub">Cloud-Based Product Demand Prediction System</span>
+        </div>
+      </div>
+      <div class="badge-group">
+        <span class="badge cloud-badge">AWS FREE TIER (NO SUBSCRIPTION REQUIRED)</span>
+        <span class="badge status-badge"><i class="dot"></i> CLOUD SERVICES ONLINE</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-sm btn-outline" id="btnUploadModal">📤 Upload Sales CSV</button>
+      <button class="btn btn-sm btn-primary" id="btnArchModal">☁ Cloud Architecture</button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Page Title -->
+    <div class="title-bar">
+      <div>
+        <h1 class="page-title">Enterprise Product Demand & Inventory Optimization</h1>
+        <p class="page-subtitle">Machine Learning Time-Series Forecasting · Automated Safety Stock & Stockout Risk Analytics</p>
+      </div>
+      <div class="quick-status">
+        <span class="status-pill">Active Model: <b id="activeModelLabel">Random Forest</b></span>
+        <span class="status-pill">Monthly Cloud Cost: <b class="text-green">$0.00 Free Tier</b></span>
+      </div>
+    </div>
+
+    <!-- Top KPI Metric Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Active Catalog Products</span>
+          <span class="kpi-value" id="kpiProducts">8 Products</span>
+          <span class="kpi-sub" id="kpiCategories">4 Categories</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Historical Transactions</span>
+          <span class="kpi-value" id="kpiRecords">5,840 Records</span>
+          <span class="kpi-sub">2 Years Daily History</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Model Accuracy (R² Score)</span>
+          <span class="kpi-value text-teal" id="kpiR2">0.892</span>
+          <span class="kpi-sub" id="kpiMae">MAE: ±2.4 Units</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Inventory Risk Alerts</span>
+          <span class="kpi-value text-amber" id="kpiAlerts">0 Active</span>
+          <span class="kpi-sub">Overstock & Stockout Warnings</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="workspace-grid">
+      <!-- Left Column: Forecasting Controls & What-If Simulation -->
+      <aside class="sidebar-card">
+        <h3 class="section-title">01 · Forecast Configuration</h3>
+        
+        <div class="form-group">
+          <label for="productSelect">Select Target Product SKU</label>
+          <select id="productSelect" class="form-select"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Forecast Horizon</label>
+          <div class="horizon-toggle">
+            <button class="toggle-btn" data-days="7">7 Days</button>
+            <button class="toggle-btn active" data-days="14">14 Days</button>
+            <button class="toggle-btn" data-days="30">30 Days</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="modelSelect">ML Forecasting Algorithm</label>
+          <select id="modelSelect" class="form-select">
+            <option value="RandomForest">Random Forest Regressor (Ensemble)</option>
+            <option value="GradientBoosting">Gradient Boosting Regressor</option>
+            <option value="LinearRegression">Linear / Ridge Regression</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+
+        <h3 class="section-title">02 · What-If Scenario Simulator</h3>
+        <p class="section-hint">Simulate price elasticity and promotional demand lifts in real-time:</p>
+
+        <div class="form-group">
+          <div class="slider-header">
+            <label>Promotional Price Discount</label>
+            <span class="slider-val" id="discountVal">0%</span>
+          </div>
+          <input type="range" id="discountSlider" min="0" max="40" step="5" value="0" class="slider-input">
+        </div>
+
+        <div class="form-group checkbox-row">
+          <label class="switch-label">
+            <input type="checkbox" id="promoToggle" class="switch-checkbox">
+            <span class="switch-slider"></span>
+            Active Marketing Campaign
+          </label>
+        </div>
+
+        <div class="form-group checkbox-row">
+          <label class="switch-label">
+            <input type="checkbox" id="holidayToggle" class="switch-checkbox">
+            <span class="switch-slider"></span>
+            Holiday / Peak Shopping Season
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btnRunForecast">⚡ Run Demand Forecast</button>
+      </aside>
+
+      <!-- Center & Right: Primary Forecasting Chart & Inventory Analysis -->
+      <section class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h3 class="chart-title" id="chartProductTitle">Demand Forecast Overview</h3>
+            <span class="chart-sub" id="chartProductCategory">Select product and run forecast</span>
+          </div>
+          <div class="chart-legend-box">
+            <span class="legend-item"><i class="legend-dot dot-history"></i> Historical Sales</span>
+            <span class="legend-item"><i class="legend-dot dot-forecast"></i> ML Forecasted Demand</span>
+          </div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="demandChart"></canvas>
+        </div>
+
+        <!-- Supply Chain & Inventory Optimization Panel -->
+        <div class="inventory-panel">
+          <h4 class="panel-heading">Automated Inventory Optimization & Replenishment Thresholds</h4>
+          <div class="inv-metrics-grid">
+            <div class="inv-box">
+              <span class="inv-label">On-Hand Inventory</span>
+              <span class="inv-val" id="invCurrent">--</span>
+            </div>
+            <div class="inv-box">
+              <span class="inv-label">Predicted Demand</span>
+              <span class="inv-val text-teal" id="invPredicted">--</span>
+            </div>
+            <div class="inv-box">
+              <span class="inv-label">Safety Stock (SS)</span>
+              <span class="inv-val" id="invSafetyStock">--</span>
+            </div>
+            <div class="inv-box highlight">
+              <span class="inv-label">Reorder Point (ROP)</span>
+              <span class="inv-val text-amber" id="invROP">--</span>
+            </div>
+            <div class="inv-box">
+              <span class="inv-label">Economic Order Qty (EOQ)</span>
+              <span class="inv-val" id="invEOQ">--</span>
+            </div>
+            <div class="inv-box">
+              <span class="inv-label">Days of Supply</span>
+              <span class="inv-val" id="invRunway">--</span>
+            </div>
+          </div>
+
+          <!-- Alert Summary Banner -->
+          <div class="alert-box-dynamic" id="alertBoxDynamic">
+            <span class="alert-icon" id="alertIcon">✓</span>
+            <div class="alert-text-group">
+              <strong id="alertHeading">Inventory Balanced</strong>
+              <p id="alertBody">Select a product and click "Run Demand Forecast" to analyze stockout and overstock risks.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom Secondary Section: Feature Importance & Alerts Log -->
+    <div class="bottom-grid">
+      <!-- Feature Importance -->
+      <div class="card card-padded">
+        <h3 class="section-title">Machine Learning Key Demand Drivers</h3>
+        <p class="section-hint">Identified through Random Forest tree split analysis:</p>
+        <div class="feature-bar-list" id="featureList">
+          <div class="empty-state">Run model to view feature importances.</div>
+        </div>
+      </div>
+
+      <!-- Real-Time Supply Chain Alerts -->
+      <div class="card card-padded">
+        <div class="alert-header-row">
+          <h3 class="section-title">Cloud Inventory Alerts (AWS DynamoDB)</h3>
+          <button class="btn-chip" id="btnRefreshAlerts">↻ Refresh</button>
+        </div>
+        <div class="alert-feed" id="alertFeed">
+          <div class="empty-state">No stockout or overstock risks detected.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cloud Architecture Modal -->
+  <div class="modal-backdrop" id="archModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>AWS Free-Tier Cloud Computing Architecture</h3>
+        <button class="modal-close" id="btnCloseArchModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="arch-flow">
+          <div class="arch-node">
+            <span class="node-icon">📂</span>
+            <b>Amazon S3</b>
+            <small>Historical Sales Datasets</small>
+            <span class="tier-pill">5 GB Free Tier</span>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="arch-node highlight">
+            <span class="node-icon">⚡</span>
+            <b>Compute & ML Engine</b>
+            <small>FastAPI + Scikit-Learn</small>
+            <span class="tier-pill">Free Local / Lambda</span>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="arch-node">
+            <span class="node-icon">🗄️</span>
+            <b>Amazon DynamoDB</b>
+            <small>Forecasts & Risk Alerts</small>
+            <span class="tier-pill">25 GB Always Free</span>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="arch-node">
+            <span class="node-icon">💻</span>
+            <b>Executive Dashboard</b>
+            <small>Predictions & What-If</small>
+            <span class="tier-pill">Zero Subscription</span>
+          </div>
+        </div>
+
+        <div class="arch-explanation mt-3">
+          <h4>Why this Project is 100% Free-Tier & Subscription-Free:</h4>
+          <ul>
+            <li><b>Zero Cloud Bills:</b> Configured strictly within AWS Free Tier limits (Amazon S3 standard 5 GB free for 12 months, DynamoDB 25 GB free forever).</li>
+            <li><b>No Paid Account or Credit Card Needed:</b> Includes a full built-in offline simulation mode that runs locally without entering AWS keys or signing in.</li>
+            <li><b>Production Ready:</b> Contains Terraform infrastructure scripts if you choose to deploy directly to your AWS account in the future.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Dataset Modal -->
+  <div class="modal-backdrop" id="uploadModal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3>Upload Custom Sales Dataset (CSV)</h3>
+        <button class="modal-close" id="btnCloseUploadModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="upload-hint">Upload your own retail CSV file. Required columns: <code>date</code>, <code>product_id</code>, <code>product_name</code>, <code>units_sold</code>, <code>unit_price</code>.</p>
+        <div class="upload-dropzone" id="dropzone">
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none">
+          <span class="dropzone-icon">📁</span>
+          <p>Drag and drop CSV here or <b class="text-teal">Browse</b></p>
+          <span id="selectedFileName" class="selected-file-label"></span>
+        </div>
+        <button class="btn btn-primary btn-block mt-3" id="btnSubmitUpload" disabled>Upload & Retrain ML Model</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastNotification" class="toast"></div>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
